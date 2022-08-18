@@ -61,6 +61,12 @@ export class AttendsService {
     return attend;
   }
 
+  async findByPartyIdAndUserId(partyId: string, userId: string) {
+    Logger.verbose(`This action returns an #${id} attend`);
+    const attend = await this.attendModel.findOne({ partyId, userId }).lean();
+    return attend;
+  }
+
   async update(id: string, updateAttendDto: UpdateAttendDto) {
     Logger.verbose(`This action updates an #${id} attend`);
     return this.attendModel.findByIdAndUpdate(id, updateAttendDto, {

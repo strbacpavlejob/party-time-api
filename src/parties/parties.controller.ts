@@ -22,6 +22,31 @@ export class PartiesController {
     return this.partiesService.create(createPartyDto);
   }
 
+  @Get(`hosted/:userId`)
+  findAllHosted(@Param('userId') userId: string) {
+    return this.partiesService.findAllHosted(userId);
+  }
+  @Get(`feeded/:userId`)
+  findAllFeeded(@Param('userId') userId: string) {
+    return this.partiesService.findAllFeeded(userId);
+  }
+
+  @Patch(`attend/:partyId/user/:userId`)
+  attendParty(
+    @Param('partyId') partyId: string,
+    @Param('userId') userId: string,
+  ) {
+    return this.partiesService.attendParty(partyId, userId);
+  }
+
+  @Patch(`favorite/:partyId/user/:userId`)
+  favoriteParty(
+    @Param('partyId') partyId: string,
+    @Param('userId') userId: string,
+  ) {
+    return this.partiesService.favoriteParty(partyId, userId);
+  }
+
   @Get()
   findAll() {
     return this.partiesService.findAll();
