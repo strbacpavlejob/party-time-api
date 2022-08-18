@@ -7,6 +7,7 @@ import { UsersService } from './users/users.service';
 import { UsersModule } from './users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PartiesModule } from './parties/parties.module';
+import { AttendsModule } from './attends/attends.module';
 import mongodbConfig from './shared/config/mongodb.config';
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import mongodbConfig from './shared/config/mongodb.config';
     }),
     UsersModule,
     PartiesModule,
+    AttendsModule,
   ],
 })
 export class AppModule {}

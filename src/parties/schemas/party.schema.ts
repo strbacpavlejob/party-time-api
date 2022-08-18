@@ -18,7 +18,7 @@ export class Party {
   startTime: Date;
   @Prop({ required: true })
   endTime: Date;
-  @Prop({ required: true })
+  @Prop({ required: true, default: 0 })
   ticketPrice: number;
   @Prop({ required: true })
   maxPeople: number;

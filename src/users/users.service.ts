@@ -39,20 +39,20 @@ export class UsersService {
     return users;
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     Logger.verbose(`This action returns a #${id} user`);
     const user = await this.userModel.findById(id).lean();
     return user;
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
+  async update(id: string, updateUserDto: UpdateUserDto) {
     Logger.verbose(`This action updates a #${id} user`);
     return this.userModel.findByIdAndUpdate(id, updateUserDto, {
       new: true,
     });
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     Logger.verbose(`This action removes a #${id} user`);
     return this.userModel.findByIdAndRemove(id);
   }
