@@ -8,6 +8,7 @@ async function bootstrap() {
     .setTitle('Party Time API')
     .setDescription('The official party time API')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);

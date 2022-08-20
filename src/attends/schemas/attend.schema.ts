@@ -4,9 +4,9 @@ export type AttendDocument = Attend & Document;
 
 @Schema()
 export class Attend {
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   userId: Types.ObjectId;
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   partyId: Types.ObjectId;
 }
 

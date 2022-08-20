@@ -1,26 +1,51 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { CreateFavoriteDto } from './dto/create-favorite.dto';
 import { UpdateFavoriteDto } from './dto/update-favorite.dto';
+import { Favorite, FavoriteDocument } from './schemas/favorite.schema';
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
 export class FavoritesService {
-  create(createFavoriteDto: CreateFavoriteDto) {
-    return 'This action adds a new favorite';
+  constructor(
+    @InjectModel(Favorite.name) private favoriteModel: Model<FavoriteDocument>,
+  ) {}
+  async create(createFavoriteDto: CreateFavoriteDto) {
+    Logger.verbose(
+      `Creates one favorite for party: ${createFavoriteDto.partyId} by user: ${createFavoriteDto.userId}`,
+    );
+    return this.favoriteModel.create(createFavoriteDto);
   }
 
-  findAll() {
-    return `This action returns all favorites`;
+
+  async findAll() {
+    Logger.verbose(`This action returns all favorites`);
+    const favorites = await this.favoriteModel.find().lean();
+    return favorites;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} favorite`;
+  async findOne(id: number) {
+    Logger.verbose(`This action returns a #${id} favorite`);
+    const favorite = await this.favoriteModel.findById(id).lean();
+    return favorite;
+  }
+  async findByPartyIdAndUserId(partyId: string, userId: string) {
+    Logger.verbose(
+      `This action returns a favorite by partyId: #${partyId} and userId: #${userId}`,
+    );
+    const favorite = await this.favoriteModel.findOne({ partyId, userId }).lean();
+    return favorite;
   }
 
-  update(id: number, updateFavoriteDto: UpdateFavoriteDto) {
-    return `This action updates a #${id} favorite`;
+  async update(id: number, updateFavoriteDto: UpdateFavoriteDto) {
+    Logger.verbose(`This action updates a #${id} favorite`);
+    return this.favoriteModel.findByIdAndUpdate(id, updateFavoriteDto, {
+      new: true,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} favorite`;
+  async remove(id: number) {
+    Logger.verbose(`This action removes a #${id} favorite`);
+    return this.favoriteModel.findByIdAndRemove(id);
   }
 }

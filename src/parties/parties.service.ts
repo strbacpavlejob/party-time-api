@@ -5,6 +5,8 @@ import { UpdatePartyDto } from './dto/update-party.dto';
 import { Party, PartyDocument } from './schemas/party.schema';
 import { Model } from 'mongoose';
 import { AttendsService } from 'src/attends/attends.service';
+import { FavoritesService } from 'src/favorites/favorites.service';
+import * as moment from 'moment';
 
 @Injectable()
 export class PartiesService {
@@ -12,10 +14,40 @@ export class PartiesService {
     @InjectModel(Party.name) private partyModel: Model<PartyDocument>,
     @Inject(forwardRef(() => AttendsService))
     private readonly attendsService: AttendsService,
+    @Inject(forwardRef(() => FavoritesService))
+    private readonly favoritesService: FavoritesService,
   ) {}
   async create(createPartyDto: CreatePartyDto) {
     Logger.verbose(`Creates one party: ${createPartyDto.title}`);
-    return this.partyModel.create(createPartyDto);
+
+    const newStartTimeDate = moment(
+      `${createPartyDto.date} ${createPartyDto.startTime}:00`,
+    ).add(1, 'day');
+
+    const newEndTimeDate = moment(
+      `${createPartyDto.date} ${createPartyDto.endTime}:00`,
+    ).add(1, 'day');
+
+    const startTime = moment(createPartyDto.startTime, 'HH:MM');
+    const endTime = moment(createPartyDto.endTime, 'HH:MM');
+    if (endTime.isBefore(startTime)) {
+      newEndTimeDate.add(1, 'day');
+    }
+
+    console.log(`newStartTimeDate`, newStartTimeDate.toDate());
+    console.log(`newEndTimeDate`, newEndTimeDate.toDate());
+
+    return this.partyModel.create({
+      userId: createPartyDto.userId,
+      title: createPartyDto.title,
+      latitude: createPartyDto.latitude,
+      longitude: createPartyDto.longitude,
+      startDateTime: newStartTimeDate.toDate(),
+      endDateTime: newEndTimeDate.toDate(),
+      ticketPrice: createPartyDto.ticketPrice,
+      numberOfPeople: createPartyDto.numberOfPeople,
+      tags: createPartyDto.tags,
+    });
   }
 
   async findAllHosted(userId: string) {
@@ -49,14 +81,14 @@ export class PartiesService {
   }
   async favoriteParty(partyId: string, userId: string) {
     Logger.verbose(`This action toggles favorite flag for single party`);
-    const foundAttend = await this.attendsService.findByPartyIdAndUserId(
+    const foundFavorite = await this.favoritesService.findByPartyIdAndUserId(
       partyId,
       userId,
     );
-    if (foundAttend) {
-      await this.attendsService.create({ partyId, userId });
+    if (foundFavorite) {
+      await this.favoritesService.create({ partyId, userId });
     } else {
-      await this.attendsService.remove(foundAttend._id);
+      await this.favoritesService.remove(foundFavorite._id);
     }
   }
   async findAll() {

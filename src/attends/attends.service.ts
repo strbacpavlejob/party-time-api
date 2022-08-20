@@ -39,14 +39,14 @@ export class AttendsService {
     Logger.verbose(
       `Creates one attend for party: ${createAttendDto.partyId} by user: ${createAttendDto.userId}`,
     );
-    if (
-      this.checkPartyAndUserId(createAttendDto.partyId, createAttendDto.userId)
-    ) {
-      throw new HttpException(
-        `The partyId or userId doesn't exist`,
-        HttpStatus.FORBIDDEN,
-      );
-    }
+    // if (
+    //   this.checkPartyAndUserId(createAttendDto.partyId, createAttendDto.userId)
+    // ) {
+    //   throw new HttpException(
+    //     `The partyId or userId doesn't exist`,
+    //     HttpStatus.FORBIDDEN,
+    //   );
+    // }
     return this.attendModel.create(createAttendDto);
   }
   async findAll() {
@@ -62,7 +62,9 @@ export class AttendsService {
   }
 
   async findByPartyIdAndUserId(partyId: string, userId: string) {
-    Logger.verbose(`This action returns an #${id} attend`);
+    Logger.verbose(
+      `This action returns an attend by partyId: #${partyId} and userId: #${userId}`,
+    );
     const attend = await this.attendModel.findOne({ partyId, userId }).lean();
     return attend;
   }

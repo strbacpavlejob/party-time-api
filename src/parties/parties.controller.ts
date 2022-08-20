@@ -6,17 +6,22 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { PartiesService } from './parties.service';
 import { CreatePartyDto } from './dto/create-party.dto';
 import { UpdatePartyDto } from './dto/update-party.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/utils/guards/jwt-guard.guard';
+
 
 @Controller('parties')
 @ApiTags('Parties')
 export class PartiesController {
   constructor(private readonly partiesService: PartiesService) {}
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createPartyDto: CreatePartyDto) {
     return this.partiesService.create(createPartyDto);

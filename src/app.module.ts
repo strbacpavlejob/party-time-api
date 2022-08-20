@@ -1,14 +1,11 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { MongooseModule, MongooseModuleOptions } from '@nestjs/mongoose';
-import { UsersController } from './users/users.controller';
-import { UsersService } from './users/users.service';
 import { UsersModule } from './users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PartiesModule } from './parties/parties.module';
 import { AttendsModule } from './attends/attends.module';
 import { FavoritesModule } from './favorites/favorites.module';
+import { AuthModule } from './auth/auth.module';
 import mongodbConfig from './shared/config/mongodb.config';
 @Module({
   imports: [
@@ -25,6 +22,7 @@ import mongodbConfig from './shared/config/mongodb.config';
       }),
       inject: [ConfigService],
     }),
+    AuthModule,
     UsersModule,
     PartiesModule,
     AttendsModule,

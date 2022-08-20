@@ -2,9 +2,9 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types, Document } from 'mongoose';
 export type PartyDocument = Party & Document;
 
-@Schema()
+@Schema({ timestamps: true })
 export class Party {
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   userId: Types.ObjectId;
   @Prop({ required: true })
   title: string;
@@ -13,19 +13,15 @@ export class Party {
   @Prop({ required: true })
   longitude: number;
   @Prop({ required: true })
-  date: Date;
+  startDateTime: Date;
   @Prop({ required: true })
-  startTime: Date;
-  @Prop({ required: true })
-  endTime: Date;
+  endDateTime: Date;
   @Prop({ required: true, default: 0 })
   ticketPrice: number;
   @Prop({ required: true })
-  maxPeople: number;
+  numberOfPeople: number;
   @Prop({ required: true })
   tags: Array<string>;
-  @Prop({ required: true })
-  createdAt: Date;
 }
 
 export const PartySchema = SchemaFactory.createForClass(Party);

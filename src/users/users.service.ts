@@ -4,8 +4,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserDocument } from './schemas/user.schema';
 import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { createCipheriv, randomBytes, scrypt } from 'crypto';
-import { promisify } from 'util';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -14,16 +13,11 @@ export class UsersService {
   async create(createUserDto: CreateUserDto) {
     Logger.verbose(`Creates one user: ${createUserDto.firstName}`);
 
-    const iv = randomBytes(16);
-    const password = process.env.PASSWORD_HASH_SECRET;
-
-    const key = (await promisify(scrypt)(password, 'salt', 32)) as Buffer;
-    const cipher = createCipheriv('aes-256-ctr', key, iv);
-
-    const passwordHash = Buffer.concat([
-      cipher.update(createUserDto.password),
-      cipher.final(),
-    ]);
+    const saltOrRounds = 10;
+    const passwordHash = await bcrypt.hash(
+      createUserDto.password,
+      saltOrRounds,
+    );
 
     return this.userModel.create({
       email: createUserDto.email,
@@ -37,6 +31,12 @@ export class UsersService {
     Logger.verbose(`This action returns all users`);
     const users = await this.userModel.find().lean();
     return users;
+  }
+
+  async findOneByEmail(email: string) {
+    Logger.verbose(`This action returns a user with ${email}`);
+    const user = await this.userModel.findOne({ email }).lean();
+    return user;
   }
 
   async findOne(id: string) {
