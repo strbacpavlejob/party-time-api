@@ -17,7 +17,7 @@ export class PartiesService {
     @Inject(forwardRef(() => FavoritesService))
     private readonly favoritesService: FavoritesService,
   ) {}
-  async create(createPartyDto: CreatePartyDto) {
+  async create(userId: string, createPartyDto: CreatePartyDto) {
     Logger.verbose(`Creates one party: ${createPartyDto.title}`);
 
     const newStartTimeDate = moment(
@@ -38,7 +38,7 @@ export class PartiesService {
     console.log(`newEndTimeDate`, newEndTimeDate.toDate());
 
     return this.partyModel.create({
-      userId: createPartyDto.userId,
+      userId,
       title: createPartyDto.title,
       latitude: createPartyDto.latitude,
       longitude: createPartyDto.longitude,
@@ -103,15 +103,17 @@ export class PartiesService {
     return party;
   }
 
-  async update(id: string, updatePartyDto: UpdatePartyDto) {
+  async update(id: string, userId: string, updatePartyDto: UpdatePartyDto) {
     Logger.verbose(`This action updates a #${id} party`);
+    //check if the userId is hosting
     return this.partyModel.findByIdAndUpdate(id, updatePartyDto, {
       new: true,
     });
   }
 
-  async remove(id: string) {
+  async remove(id: string, userId: string) {
     Logger.verbose(`This action removes a #${id} party`);
+    //check if the userId is hosting
     return this.partyModel.findByIdAndRemove(id);
   }
 }

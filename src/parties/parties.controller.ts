@@ -13,7 +13,7 @@ import { CreatePartyDto } from './dto/create-party.dto';
 import { UpdatePartyDto } from './dto/update-party.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/utils/guards/jwt-guard.guard';
-
+import { GetCurrentUserById } from 'src/utils';
 
 @Controller('parties')
 @ApiTags('Parties')
@@ -23,33 +23,39 @@ export class PartiesController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createPartyDto: CreatePartyDto) {
-    return this.partiesService.create(createPartyDto);
+  create(
+    @Body() createPartyDto: CreatePartyDto,
+    @GetCurrentUserById() userId: string,
+  ) {
+    console.log('userId', userId);
+    return this.partiesService.create(userId, createPartyDto);
   }
 
-  @Get(`hosted/:userId`)
-  findAllHosted(@Param('userId') userId: string) {
+  // list all hosted by user
+
+  // filter-parties feeded-hosted, all other filters
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get(`hosted-parties`)
+  findAllHosted(@GetCurrentUserById() userId: string) {
     return this.partiesService.findAllHosted(userId);
   }
-  @Get(`feeded/:userId`)
-  findAllFeeded(@Param('userId') userId: string) {
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get(`feeded-parties/`)
+  findAllFeeded(@GetCurrentUserById() userId: string) {
     return this.partiesService.findAllFeeded(userId);
   }
 
-  @Patch(`attend/:partyId/user/:userId`)
-  attendParty(
-    @Param('partyId') partyId: string,
-    @Param('userId') userId: string,
-  ) {
-    return this.partiesService.attendParty(partyId, userId);
+  @Patch(`attend/:id`)
+  attendParty(@Param('id') id: string, @GetCurrentUserById() userId: string) {
+    return this.partiesService.attendParty(id, userId);
   }
 
-  @Patch(`favorite/:partyId/user/:userId`)
-  favoriteParty(
-    @Param('partyId') partyId: string,
-    @Param('userId') userId: string,
-  ) {
-    return this.partiesService.favoriteParty(partyId, userId);
+  @Patch(`favorite/:id`)
+  favoriteParty(@Param('id') id: string, @GetCurrentUserById() userId: string) {
+    return this.partiesService.favoriteParty(id, userId);
   }
 
   @Get()
@@ -62,13 +68,21 @@ export class PartiesController {
     return this.partiesService.findOne(id);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePartyDto: UpdatePartyDto) {
-    return this.partiesService.update(id, updatePartyDto);
+  update(
+    @Param('id') id: string,
+    @GetCurrentUserById() userId: string,
+    @Body() updatePartyDto: UpdatePartyDto,
+  ) {
+    return this.partiesService.update(id, userId, updatePartyDto);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.partiesService.remove(id);
+  remove(@Param('id') id: string, @GetCurrentUserById() userId: string) {
+    return this.partiesService.remove(id, userId);
   }
 }

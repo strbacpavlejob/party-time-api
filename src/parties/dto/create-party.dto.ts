@@ -20,6 +20,4 @@ export class CreatePartyDto {
   numberOfPeople: number;
   @ApiProperty({ example: ['pop', 'rock', '90s'] })
   tags: Array<string>;
-  @ApiProperty({ example: 'A3PsUnNvXDNeJ2XTKVRCkhJliB73' })
-  userId: string;
 }

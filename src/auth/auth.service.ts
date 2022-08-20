@@ -20,12 +20,12 @@ export class AuthService {
 
     if (!isMatch) throw new UnauthorizedException('Credentials incorrect');
 
-    return this.signUser(user.id, user.email, 'user');
+    return this.signUser(user._id, user.email, 'user');
   }
 
-  signUser(userId: number, email: string, type: string) {
+  signUser(userId: string, email: string, type: string) {
     return this.jwtService.sign({
-      sub: userId,
+      userId,
       email,
       type: type,
     });
