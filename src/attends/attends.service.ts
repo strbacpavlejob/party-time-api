@@ -84,4 +84,14 @@ export class AttendsService {
     Logger.verbose(`This action removes an #${id} attend`);
     return this.attendModel.findByIdAndRemove(id);
   }
+
+  async removeByAllByUserId(userId: string) {
+    Logger.verbose(`This action removes attends by userId #${userId}`);
+    await this.attendModel.remove({ userId });
+  }
+
+  async removeByAllByPartyId(partyId: string) {
+    Logger.verbose(`This action removes attends by partyId #${partyId}`);
+    await this.attendModel.remove({ partyId });
+  }
 }

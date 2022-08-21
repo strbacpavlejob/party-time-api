@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserDocument } from './schemas/user.schema';
@@ -7,10 +7,15 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { throwError } from 'src/common/error/domain';
 import { UserErrors } from 'src/common/error/user.errors';
+import { PartiesService } from 'src/parties/parties.service';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @Inject(forwardRef(() => PartiesService))
+    private readonly partiesService: PartiesService,
+  ) {}
 
   async create(createUserDto: CreateUserDto) {
     Logger.verbose(`Creates one user: ${createUserDto.firstName}`);
@@ -71,6 +76,7 @@ export class UsersService {
   async remove(id: string, userId: string) {
     Logger.verbose(`This action removes a #${id} user`);
     if (id !== userId) throwError(UserErrors.USER_HAS_NO_PERMISION);
+    await this.partiesService.removeAllByUserId(userId);
     return this.userModel.findByIdAndRemove(id);
   }
 }

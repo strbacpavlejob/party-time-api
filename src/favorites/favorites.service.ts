@@ -53,4 +53,14 @@ export class FavoritesService {
     Logger.verbose(`This action removes a #${id} favorite`);
     return this.favoriteModel.findByIdAndRemove(id);
   }
+
+  async removeByAllByUserId(userId: string) {
+    Logger.verbose(`This action removes favorites by userId #${userId}`);
+    await this.favoriteModel.remove({ userId });
+  }
+
+  async removeByAllByPartyId(partyId: string) {
+    Logger.verbose(`This action removes favorites by partyId #${partyId}`);
+    await this.favoriteModel.remove({ partyId });
+  }
 }

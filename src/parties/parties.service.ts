@@ -54,10 +54,10 @@ export class PartiesService {
       numberOfGuests: createPartyDto.numberOfGuests,
       tags: createPartyDto.tags,
     });
-    return this.getPartyAdditionalData(userId, party);
+    return this.formatPartyData(userId, party);
   }
 
-  async getPartyAdditionalData(
+  async formatPartyData(
     userId: string | undefined,
     party: Party & { _id: Types.ObjectId },
   ) {
@@ -84,14 +84,14 @@ export class PartiesService {
     };
   }
 
-  async getpartiesExtendedData(
+  async formatPartyListData(
     userId: string | undefined,
     parties: Array<Party & { _id: Types.ObjectId }>,
   ) {
     const partiesExtended = [];
     for (let i = 0; i < parties.length; i++) {
       const party = parties[i];
-      const extendedParty = await this.getPartyAdditionalData(userId, party);
+      const extendedParty = await this.formatPartyData(userId, party);
       partiesExtended.push(extendedParty);
     }
     return partiesExtended;
@@ -103,7 +103,7 @@ export class PartiesService {
       .find({ userId: { $eq: userId } })
       .lean();
 
-    return this.getpartiesExtendedData(userId, parties);
+    return this.formatPartyListData(userId, parties);
   }
 
   async findAllFeeded(userId: string) {
@@ -111,7 +111,7 @@ export class PartiesService {
     const parties = await this.partyModel
       .find({ userId: { $ne: userId } })
       .lean();
-    return this.getpartiesExtendedData(userId, parties);
+    return this.formatPartyListData(userId, parties);
   }
 
   async attendParty(partyId: string, userId: string) {
@@ -156,7 +156,7 @@ export class PartiesService {
   async findAll() {
     Logger.verbose(`This action returns all parties`);
     const parties = await this.partyModel.find().lean();
-    return this.getpartiesExtendedData(undefined, parties);
+    return this.formatPartyListData(undefined, parties);
   }
 
   async findOne(id: string) {
@@ -177,20 +177,27 @@ export class PartiesService {
         new: true,
       },
     );
-    return this.getPartyAdditionalData(userId, updatedParty);
+    return this.formatPartyData(userId, updatedParty);
   }
 
   async remove(id: string, userId: string) {
     Logger.verbose(`This action removes a #${id} party`);
     const foundParty = await this.partyModel.findOne({ userId, _id: id });
     if (!foundParty) throwError(UserErrors.USER_HAS_NO_PERMISION);
-    const extendedPartyData = await this.getPartyAdditionalData(
-      userId,
-      foundParty,
-    );
+    const extendedPartyData = await this.formatPartyData(userId, foundParty);
+
+    await this.attendsService.removeByAllByPartyId(id);
+    await this.favoritesService.removeByAllByPartyId(id);
+
     await this.partyModel.findByIdAndRemove(id);
 
     return extendedPartyData;
-    // remove attend
+  }
+
+  async removeAllByUserId(userId: string) {
+    Logger.verbose(`This action removes all parties by userId #${userId}`);
+    await this.attendsService.removeByAllByUserId(userId);
+    await this.favoritesService.removeByAllByUserId(userId);
+    await this.partyModel.remove({ userId });
   }
 }
