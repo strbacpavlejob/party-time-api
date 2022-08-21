@@ -10,4 +10,6 @@ export class Attend {
   partyId: Types.ObjectId;
 }
 
-export const AttendSchema = SchemaFactory.createForClass(Attend);
+const AttendSchema = SchemaFactory.createForClass(Attend);
+AttendSchema.index({ userId: 1, partyId: 1 }, { unique: true });
+export { AttendSchema };

@@ -5,6 +5,8 @@ import { User, UserDocument } from './schemas/user.schema';
 import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
+import { throwError } from 'src/common/error/domain';
+import { UserErrors } from 'src/common/error/user.errors';
 
 @Injectable()
 export class UsersService {
@@ -39,21 +41,36 @@ export class UsersService {
     return user;
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<User & { _id: Types.ObjectId }> {
     Logger.verbose(`This action returns a #${id} user`);
     const user = await this.userModel.findById(id).lean();
+    if (!user) throwError(UserErrors.USER_NOT_FOUND);
     return user;
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto) {
+  async update(id: string, userId: string, updateUserDto: UpdateUserDto) {
     Logger.verbose(`This action updates a #${id} user`);
-    return this.userModel.findByIdAndUpdate(id, updateUserDto, {
+    if (id !== userId) throwError(UserErrors.USER_HAS_NO_PERMISION);
+
+    let updateData: any = updateUserDto;
+
+    if (!updateUserDto.password) {
+      const saltOrRounds = 10;
+      const passwordHash = await bcrypt.hash(
+        updateUserDto?.password,
+        saltOrRounds,
+      );
+      updateData = { ...updateUserDto, passwordHash };
+    }
+
+    return this.userModel.findByIdAndUpdate(id, updateData, {
       new: true,
     });
   }
 
-  async remove(id: string) {
+  async remove(id: string, userId: string) {
     Logger.verbose(`This action removes a #${id} user`);
+    if (id !== userId) throwError(UserErrors.USER_HAS_NO_PERMISION);
     return this.userModel.findByIdAndRemove(id);
   }
 }

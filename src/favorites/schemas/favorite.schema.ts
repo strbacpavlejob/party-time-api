@@ -10,4 +10,6 @@ export class Favorite {
   partyId: Types.ObjectId;
 }
 
-export const FavoriteSchema = SchemaFactory.createForClass(Favorite);
+const FavoriteSchema = SchemaFactory.createForClass(Favorite);
+FavoriteSchema.index({ userId: 1, partyId: 1 }, { unique: true });
+export { FavoriteSchema };

@@ -7,11 +7,17 @@ import { Model } from 'mongoose';
 import { AttendsService } from 'src/attends/attends.service';
 import { FavoritesService } from 'src/favorites/favorites.service';
 import * as moment from 'moment';
+import { UsersService } from 'src/users/users.service';
+import { throwError } from 'src/common/error/domain';
+import { UserErrors } from 'src/common/error/user.errors';
+import { PartyErrors } from 'src/common/error/party.errors';
 
 @Injectable()
 export class PartiesService {
   constructor(
     @InjectModel(Party.name) private partyModel: Model<PartyDocument>,
+    @Inject(forwardRef(() => UsersService))
+    private readonly usersService: UsersService,
     @Inject(forwardRef(() => AttendsService))
     private readonly attendsService: AttendsService,
     @Inject(forwardRef(() => FavoritesService))
@@ -48,6 +54,7 @@ export class PartiesService {
       numberOfPeople: createPartyDto.numberOfPeople,
       tags: createPartyDto.tags,
     });
+
   }
 
   async findAllHosted(userId: string) {
@@ -100,12 +107,14 @@ export class PartiesService {
   async findOne(id: string) {
     Logger.verbose(`This action returns a #${id} party`);
     const party = await this.partyModel.findById(id).lean();
+    if (!party) throwError(PartyErrors.PARTY_NOT_FOUND);
     return party;
   }
 
   async update(id: string, userId: string, updatePartyDto: UpdatePartyDto) {
     Logger.verbose(`This action updates a #${id} party`);
-    //check if the userId is hosting
+    const foundParty = this.partyModel.findOne({ userId });
+    if (!foundParty) throwError(UserErrors.USER_HAS_NO_PERMISION);
     return this.partyModel.findByIdAndUpdate(id, updatePartyDto, {
       new: true,
     });
@@ -113,7 +122,8 @@ export class PartiesService {
 
   async remove(id: string, userId: string) {
     Logger.verbose(`This action removes a #${id} party`);
-    //check if the userId is hosting
+    const foundParty = this.partyModel.findOne({ userId });
+    if (!foundParty) throwError(UserErrors.USER_HAS_NO_PERMISION);
     return this.partyModel.findByIdAndRemove(id);
   }
 }

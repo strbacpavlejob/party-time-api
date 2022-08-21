@@ -39,14 +39,6 @@ export class AttendsService {
     Logger.verbose(
       `Creates one attend for party: ${createAttendDto.partyId} by user: ${createAttendDto.userId}`,
     );
-    // if (
-    //   this.checkPartyAndUserId(createAttendDto.partyId, createAttendDto.userId)
-    // ) {
-    //   throw new HttpException(
-    //     `The partyId or userId doesn't exist`,
-    //     HttpStatus.FORBIDDEN,
-    //   );
-    // }
     return this.attendModel.create(createAttendDto);
   }
   async findAll() {

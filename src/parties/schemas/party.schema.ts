@@ -23,5 +23,6 @@ export class Party {
   @Prop({ required: true })
   tags: Array<string>;
 }
-
-export const PartySchema = SchemaFactory.createForClass(Party);
+const PartySchema = SchemaFactory.createForClass(Party);
+PartySchema.index({ userId: 1, title: 1 }, { unique: true });
+export { PartySchema };

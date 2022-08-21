@@ -48,11 +48,15 @@ export class PartiesController {
     return this.partiesService.findAllFeeded(userId);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Patch(`attend/:id`)
   attendParty(@Param('id') id: string, @GetCurrentUserById() userId: string) {
     return this.partiesService.attendParty(id, userId);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Patch(`favorite/:id`)
   favoriteParty(@Param('id') id: string, @GetCurrentUserById() userId: string) {
     return this.partiesService.favoriteParty(id, userId);

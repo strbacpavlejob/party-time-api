@@ -21,7 +21,7 @@ export class CreatePartyDto {
   ticketPriceMax: number;
 
   @ApiProperty({ example: 50 })
-  numOfPeopleMin: number;
+  numberOfPeopleMin: number;
   @ApiProperty({ example: 100 })
-  numOfPeopleMax: number;
+  numberOfPeopleMax: number;
 }
