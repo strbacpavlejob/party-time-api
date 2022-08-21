@@ -19,7 +19,7 @@ export class Party {
   @Prop({ required: true, default: 0 })
   ticketPrice: number;
   @Prop({ required: true })
-  numberOfPeople: number;
+  numberOfGuests: number;
   @Prop({ required: true })
   tags: Array<string>;
 }

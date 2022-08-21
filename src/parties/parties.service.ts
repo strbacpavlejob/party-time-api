@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { CreatePartyDto } from './dto/create-party.dto';
 import { UpdatePartyDto } from './dto/update-party.dto';
 import { Party, PartyDocument } from './schemas/party.schema';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { AttendsService } from 'src/attends/attends.service';
 import { FavoritesService } from 'src/favorites/favorites.service';
 import * as moment from 'moment';
@@ -43,7 +43,7 @@ export class PartiesService {
     console.log(`newStartTimeDate`, newStartTimeDate.toDate());
     console.log(`newEndTimeDate`, newEndTimeDate.toDate());
 
-    return this.partyModel.create({
+    const party = await this.partyModel.create({
       userId,
       title: createPartyDto.title,
       latitude: createPartyDto.latitude,
@@ -51,10 +51,50 @@ export class PartiesService {
       startDateTime: newStartTimeDate.toDate(),
       endDateTime: newEndTimeDate.toDate(),
       ticketPrice: createPartyDto.ticketPrice,
-      numberOfPeople: createPartyDto.numberOfPeople,
+      numberOfGuests: createPartyDto.numberOfGuests,
       tags: createPartyDto.tags,
     });
+    return this.getPartyAdditionalData(userId, party);
+  }
 
+  async getPartyAdditionalData(
+    userId: string | undefined,
+    party: Party & { _id: Types.ObjectId },
+  ) {
+    return {
+      _id: party._id,
+      userId: party.userId,
+      title: party.title,
+      latitude: party.latitude,
+      longitude: party.longitude,
+      startDateTime: party.startDateTime,
+      endDateTime: party.endDateTime,
+      ticketPrice: party.ticketPrice,
+      numberOfGuests: party.numberOfGuests,
+      tags: party.tags,
+      isAttended: userId
+        ? await this.attendsService.isAttended(userId, party._id.toString())
+        : false,
+      isFavorite: userId
+        ? await this.favoritesService.isFavorite(userId, party._id.toString())
+        : false,
+      currentNumberOfGuests: await this.attendsService.getCurrentNumberOfGuests(
+        party._id.toString(),
+      ),
+    };
+  }
+
+  async getpartiesExtendedData(
+    userId: string | undefined,
+    parties: Array<Party & { _id: Types.ObjectId }>,
+  ) {
+    const partiesExtended = [];
+    for (let i = 0; i < parties.length; i++) {
+      const party = parties[i];
+      const extendedParty = await this.getPartyAdditionalData(userId, party);
+      partiesExtended.push(extendedParty);
+    }
+    return partiesExtended;
   }
 
   async findAllHosted(userId: string) {
@@ -62,7 +102,8 @@ export class PartiesService {
     const parties = await this.partyModel
       .find({ userId: { $eq: userId } })
       .lean();
-    return parties;
+
+    return this.getpartiesExtendedData(userId, parties);
   }
 
   async findAllFeeded(userId: string) {
@@ -70,38 +111,52 @@ export class PartiesService {
     const parties = await this.partyModel
       .find({ userId: { $ne: userId } })
       .lean();
-    return parties;
+    return this.getpartiesExtendedData(userId, parties);
   }
 
   async attendParty(partyId: string, userId: string) {
     Logger.verbose(`This action toggles attend flag for single party`);
+
+    const foundParty = await this.partyModel.findOne({ _id: partyId });
+    if (!foundParty) throwError(PartyErrors.PARTY_NOT_FOUND);
+    if (foundParty.userId.toString() === userId)
+      throwError(PartyErrors.ATTEND_ACTION_FORBIDDEN);
+
     const foundAttend = await this.attendsService.findByPartyIdAndUserId(
       partyId,
       userId,
     );
-    if (foundAttend) {
+    if (!foundAttend) {
       await this.attendsService.create({ partyId, userId });
-      return `Party attend status: ${true}`;
+      return `Party attend status is set to: ${true}`;
     }
     await this.attendsService.remove(foundAttend._id);
-    return `Party attend status: ${false}`;
+    return `Party attend status is set to: ${false}`;
   }
   async favoriteParty(partyId: string, userId: string) {
     Logger.verbose(`This action toggles favorite flag for single party`);
+
+    const foundParty = await this.partyModel.findOne({ _id: partyId });
+    if (!foundParty) throwError(PartyErrors.PARTY_NOT_FOUND);
+    if (foundParty.userId.toString() === userId)
+      throwError(PartyErrors.FAVORITE_ACTION_FORBIDDEN);
+
     const foundFavorite = await this.favoritesService.findByPartyIdAndUserId(
       partyId,
       userId,
     );
-    if (foundFavorite) {
+    if (!foundFavorite) {
       await this.favoritesService.create({ partyId, userId });
+      return `Party favorite status is set to: ${true}`;
     } else {
       await this.favoritesService.remove(foundFavorite._id);
+      return `Party favorite status is set to: ${false}`;
     }
   }
   async findAll() {
     Logger.verbose(`This action returns all parties`);
     const parties = await this.partyModel.find().lean();
-    return parties;
+    return this.getpartiesExtendedData(undefined, parties);
   }
 
   async findOne(id: string) {
@@ -115,15 +170,27 @@ export class PartiesService {
     Logger.verbose(`This action updates a #${id} party`);
     const foundParty = this.partyModel.findOne({ userId });
     if (!foundParty) throwError(UserErrors.USER_HAS_NO_PERMISION);
-    return this.partyModel.findByIdAndUpdate(id, updatePartyDto, {
-      new: true,
-    });
+    const updatedParty = await this.partyModel.findByIdAndUpdate(
+      id,
+      updatePartyDto,
+      {
+        new: true,
+      },
+    );
+    return this.getPartyAdditionalData(userId, updatedParty);
   }
 
   async remove(id: string, userId: string) {
     Logger.verbose(`This action removes a #${id} party`);
-    const foundParty = this.partyModel.findOne({ userId });
+    const foundParty = await this.partyModel.findOne({ userId, _id: id });
     if (!foundParty) throwError(UserErrors.USER_HAS_NO_PERMISION);
-    return this.partyModel.findByIdAndRemove(id);
+    const extendedPartyData = await this.getPartyAdditionalData(
+      userId,
+      foundParty,
+    );
+    await this.partyModel.findByIdAndRemove(id);
+
+    return extendedPartyData;
+    // remove attend
   }
 }

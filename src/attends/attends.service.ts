@@ -41,6 +41,18 @@ export class AttendsService {
     );
     return this.attendModel.create(createAttendDto);
   }
+  async getCurrentNumberOfGuests(partyId: string) {
+    const foundAttends = await this.attendModel.find({ partyId }).lean();
+    if (!foundAttends) return 0;
+    return foundAttends.length;
+  }
+
+  async isAttended(userId: string, partyId: string) {
+    const foundAttend = await this.attendModel.findOne({ userId, partyId });
+    if (!foundAttend) return false;
+    return true;
+  }
+
   async findAll() {
     Logger.verbose(`This action returns all attends`);
     const attends = await this.attendModel.find().lean();

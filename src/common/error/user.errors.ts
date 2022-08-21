@@ -12,6 +12,6 @@ export const UserErrors: Record<string, ErrorThrowDefinition> = {
     name: 'USER_HAS_NO_PERMISION',
     message: 'Logged user for this action has no permision',
     code: 1002,
-    httpCode: HttpCodes.NOT_FOUND,
+    httpCode: HttpCodes.UNAUTHORIZED,
   },
 };

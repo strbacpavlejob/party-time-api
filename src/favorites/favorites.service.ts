@@ -17,6 +17,11 @@ export class FavoritesService {
     return this.favoriteModel.create(createFavoriteDto);
   }
 
+  async isFavorite(userId: string, partyId: string) {
+    const foundFavorite = await this.favoriteModel.findOne({ userId, partyId });
+    if (!foundFavorite) return false;
+    return true;
+  }
 
   async findAll() {
     Logger.verbose(`This action returns all favorites`);

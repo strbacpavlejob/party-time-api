@@ -17,7 +17,7 @@ export class CreatePartyDto {
   @ApiProperty({ example: 20 })
   ticketPrice: number;
   @ApiProperty({ example: 100 })
-  numberOfPeople: number;
+  numberOfGuests: number;
   @ApiProperty({ example: ['pop', 'rock', '90s'] })
   tags: Array<string>;
 }

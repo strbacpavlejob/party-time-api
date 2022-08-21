@@ -6,6 +6,7 @@ export class UserResponse {
   @ApiResponseProperty({ example: 'A3PsUnNvXDNeJ2XTKVRCkhJliB73' })
   @IsString()
   _id: string;
+  
   @ApiResponseProperty({ example: 'john@smith.com' })
   @IsEmail()
   email: string;

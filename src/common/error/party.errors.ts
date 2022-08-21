@@ -8,4 +8,16 @@ export const PartyErrors: Record<string, ErrorThrowDefinition> = {
     code: 2001,
     httpCode: HttpCodes.NOT_FOUND,
   },
+  FAVORITE_ACTION_FORBIDDEN: {
+    name: 'FAVORITE_ACTION_FORBIDDEN',
+    message: 'You cannot favorite the party that you hosted',
+    code: 2002,
+    httpCode: HttpCodes.FORBIDDEN,
+  },
+  ATTEND_ACTION_FORBIDDEN: {
+    name: 'ATTEND_ACTION_FORBIDDEN',
+    message: 'You cannot attend the party that you hosted',
+    code: 2003,
+    httpCode: HttpCodes.FORBIDDEN,
+  },
 };
