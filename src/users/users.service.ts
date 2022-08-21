@@ -26,18 +26,37 @@ export class UsersService {
       saltOrRounds,
     );
 
-    return this.userModel.create({
+    const user = await this.userModel.create({
       email: createUserDto.email,
       passwordHash,
       firstName: createUserDto.firstName,
       lastName: createUserDto.lastName,
     });
+    return this.formatUserData(user);
+  }
+  async formatUserData(user: User & { _id: Types.ObjectId }) {
+    return {
+      _id: user._id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    };
+  }
+
+  async formatUserListData(users: Array<User & { _id: Types.ObjectId }>) {
+    const usersExtended = [];
+    for (let i = 0; i < users.length; i++) {
+      const user = users[i];
+      const formatedUser = await this.formatUserData(user);
+      usersExtended.push(formatedUser);
+    }
+    return usersExtended;
   }
 
   async findAll() {
     Logger.verbose(`This action returns all users`);
     const users = await this.userModel.find().lean();
-    return users;
+    return this.formatUserListData(users);
   }
 
   async findOneByEmail(email: string) {
@@ -46,11 +65,11 @@ export class UsersService {
     return user;
   }
 
-  async findOne(id: string): Promise<User & { _id: Types.ObjectId }> {
+  async findOne(id: string) {
     Logger.verbose(`This action returns a #${id} user`);
     const user = await this.userModel.findById(id).lean();
     if (!user) throwError(UserErrors.USER_NOT_FOUND);
-    return user;
+    return this.formatUserData(user);
   }
 
   async update(id: string, userId: string, updateUserDto: UpdateUserDto) {
@@ -68,15 +87,17 @@ export class UsersService {
       updateData = { ...updateUserDto, passwordHash };
     }
 
-    return this.userModel.findByIdAndUpdate(id, updateData, {
+    const updatedUser = await this.userModel.findByIdAndUpdate(id, updateData, {
       new: true,
     });
+    return this.formatUserData(updatedUser);
   }
 
   async remove(id: string, userId: string) {
     Logger.verbose(`This action removes a #${id} user`);
     if (id !== userId) throwError(UserErrors.USER_HAS_NO_PERMISION);
     await this.partiesService.removeAllByUserId(userId);
-    return this.userModel.findByIdAndRemove(id);
+    const deltedUser = await this.userModel.findByIdAndRemove(id);
+    return this.formatUserData(deltedUser);
   }
 }

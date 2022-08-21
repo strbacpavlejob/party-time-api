@@ -163,7 +163,7 @@ export class PartiesService {
     Logger.verbose(`This action returns a #${id} party`);
     const party = await this.partyModel.findById(id).lean();
     if (!party) throwError(PartyErrors.PARTY_NOT_FOUND);
-    return party;
+    return this.formatPartyData(undefined, party);
   }
 
   async update(id: string, userId: string, updatePartyDto: UpdatePartyDto) {
