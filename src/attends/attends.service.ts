@@ -26,7 +26,7 @@ export class AttendsService {
 
   async checkPartyAndUserId(partyId: string, userId: string): Promise<boolean> {
     const foundUser = await this.usersService.findOne(userId);
-    const foundParty = await this.partiesService.findOne(partyId);
+    const foundParty = await this.partiesService.findOne(userId, partyId);
     if (!foundUser || !foundParty) {
       return false;
     }

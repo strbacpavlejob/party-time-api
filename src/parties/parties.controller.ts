@@ -14,12 +14,29 @@ import { UpdatePartyDto } from './dto/update-party.dto';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/utils/guards/jwt-guard.guard';
 import { GetCurrentUserById } from 'src/utils';
-import { GenericPartyResponse, PartyListResponse, PartyPartialResponse } from './types/party.response.type';
+import {
+  GenericPartyResponse,
+  PartyListResponse,
+  PartyPartialResponse,
+} from './types/party.response.type';
+import { FilterPartyDto } from './dto/filter-party.dto';
 
 @Controller('parties')
 @ApiTags('Parties')
 export class PartiesController {
   constructor(private readonly partiesService: PartiesService) {}
+
+  @ApiBearerAuth()
+  @Post('filter')
+  @ApiOkResponse({
+    type: GenericPartyResponse,
+  })
+  filter(
+    @Body() filterPartyDto: FilterPartyDto,
+    @GetCurrentUserById() userId: any,
+  ) {
+    return this.partiesService.filterParties(userId, filterPartyDto);
+  }
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
@@ -35,9 +52,6 @@ export class PartiesController {
     return this.partiesService.create(userId, createPartyDto);
   }
 
-  // list all hosted by user
-
-  // filter-parties feeded-hosted, all other filters
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ApiOkResponse({
@@ -76,17 +90,16 @@ export class PartiesController {
     type: PartyListResponse,
   })
   @Get()
-  findAll() {
-    return this.partiesService.findAll();
+  findAll(@GetCurrentUserById() userId: string) {
+    return this.partiesService.findAll(userId);
   }
 
-  
   @Get(':id')
   @ApiOkResponse({
     type: GenericPartyResponse,
   })
-  findOne(@Param('id') id: string) {
-    return this.partiesService.findOne(id);
+  findOne(@GetCurrentUserById() userId: string, @Param('id') id: string) {
+    return this.partiesService.findOne(userId, id);
   }
 
   @ApiBearerAuth()

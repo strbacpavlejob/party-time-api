@@ -11,6 +11,7 @@ import { UsersService } from 'src/users/users.service';
 import { throwError } from 'src/common/error/domain';
 import { UserErrors } from 'src/common/error/user.errors';
 import { PartyErrors } from 'src/common/error/party.errors';
+import { FilterPartyDto } from './dto/filter-party.dto';
 
 @Injectable()
 export class PartiesService {
@@ -97,6 +98,93 @@ export class PartiesService {
     return partiesExtended;
   }
 
+  async filterParties(
+    userAuthId: string | undefined,
+    filterPartyDto: FilterPartyDto,
+  ) {
+    Logger.verbose(`This action returns all parties hosted by the user`);
+    const {
+      searchedWords,
+      ticketPriceMin,
+      ticketPriceMax,
+      numberOfGuestsMin,
+      numberOfGuestsMax,
+      dateMin,
+      dateMax,
+      userId,
+    } = filterPartyDto;
+
+    let matchQuery = {};
+
+    if (searchedWords) {
+      matchQuery = {
+        ...matchQuery,
+        $or: [
+          { title: { $regex: `^${searchedWords}`, $options: 'i' } },
+          { tags: { $regex: `^${searchedWords}`, $options: 'i' } },
+        ],
+      };
+    }
+
+    if (ticketPriceMin) {
+      matchQuery = {
+        ...matchQuery,
+        ticketPrice: { $gte: ticketPriceMin },
+      };
+    }
+
+    if (ticketPriceMax) {
+      matchQuery = {
+        ...matchQuery,
+        ticketPrice: { $lte: ticketPriceMax },
+      };
+    }
+
+    if (numberOfGuestsMin) {
+      matchQuery = {
+        ...matchQuery,
+        numberOfGuests: { $gte: numberOfGuestsMin },
+      };
+    }
+
+    if (numberOfGuestsMax) {
+      matchQuery = {
+        ...matchQuery,
+        numberOfGuests: { $lte: numberOfGuestsMax },
+      };
+    }
+
+    if (dateMin) {
+      matchQuery = {
+        ...matchQuery,
+        startDateTime: { $gte: moment(dateMin).toDate() },
+      };
+    }
+
+    if (dateMax) {
+      matchQuery = {
+        ...matchQuery,
+        endDateTime: { $lte: moment(dateMax).toDate() },
+      };
+    }
+    if (userId) {
+      matchQuery = {
+        ...matchQuery,
+        userId: userId,
+      };
+    }
+
+    const parties = await this.partyModel.aggregate([
+      {
+        $match: {
+          ...matchQuery,
+        },
+      },
+    ]);
+
+    return this.formatPartyListData(userAuthId, parties);
+  }
+
   async findAllHosted(userId: string) {
     Logger.verbose(`This action returns all parties hosted by the user`);
     const parties = await this.partyModel
@@ -153,17 +241,17 @@ export class PartiesService {
       return `Party favorite status is set to: ${false}`;
     }
   }
-  async findAll() {
+  async findAll(userId: string | undefined) {
     Logger.verbose(`This action returns all parties`);
     const parties = await this.partyModel.find().lean();
-    return this.formatPartyListData(undefined, parties);
+    return this.formatPartyListData(userId, parties);
   }
 
-  async findOne(id: string) {
+  async findOne(userId: string | undefined, id: string) {
     Logger.verbose(`This action returns a #${id} party`);
     const party = await this.partyModel.findById(id).lean();
     if (!party) throwError(PartyErrors.PARTY_NOT_FOUND);
-    return this.formatPartyData(undefined, party);
+    return this.formatPartyData(userId, party);
   }
 
   async update(id: string, userId: string, updatePartyDto: UpdatePartyDto) {
