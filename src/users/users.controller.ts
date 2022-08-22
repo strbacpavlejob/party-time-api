@@ -14,7 +14,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/utils/guards/jwt-guard.guard';
 import { GetCurrentUserById } from 'src/utils';
-import { GenericUserResponse, UserListResponse } from './types/user.response.type';
+import { GenericUserResponse, UserListResponse, UserPartialResponse } from './types/user.response.type';
 import { createGenericResponse } from 'src/common/http/response';
 
 @Controller('users')
@@ -52,7 +52,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   @ApiOkResponse({
-    type: GenericUserResponse,
+    type: UserPartialResponse,
   })
   update(
     @Param('id') id: string,

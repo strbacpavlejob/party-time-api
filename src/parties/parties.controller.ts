@@ -11,9 +11,10 @@ import {
 import { PartiesService } from './parties.service';
 import { CreatePartyDto } from './dto/create-party.dto';
 import { UpdatePartyDto } from './dto/update-party.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/utils/guards/jwt-guard.guard';
 import { GetCurrentUserById } from 'src/utils';
+import { GenericPartyResponse, PartyListResponse, PartyPartialResponse } from './types/party.response.type';
 
 @Controller('parties')
 @ApiTags('Parties')
@@ -23,6 +24,9 @@ export class PartiesController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post()
+  @ApiOkResponse({
+    type: GenericPartyResponse,
+  })
   create(
     @Body() createPartyDto: CreatePartyDto,
     @GetCurrentUserById() userId: string,
@@ -36,6 +40,9 @@ export class PartiesController {
   // filter-parties feeded-hosted, all other filters
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @ApiOkResponse({
+    type: PartyListResponse,
+  })
   @Get(`hosted-parties`)
   findAllHosted(@GetCurrentUserById() userId: string) {
     return this.partiesService.findAllHosted(userId);
@@ -43,7 +50,10 @@ export class PartiesController {
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @Get(`feeded-parties/`)
+  @ApiOkResponse({
+    type: PartyListResponse,
+  })
+  @Get(`feeded-parties`)
   findAllFeeded(@GetCurrentUserById() userId: string) {
     return this.partiesService.findAllFeeded(userId);
   }
@@ -62,12 +72,19 @@ export class PartiesController {
     return this.partiesService.favoriteParty(id, userId);
   }
 
+  @ApiOkResponse({
+    type: PartyListResponse,
+  })
   @Get()
   findAll() {
     return this.partiesService.findAll();
   }
 
+  
   @Get(':id')
+  @ApiOkResponse({
+    type: GenericPartyResponse,
+  })
   findOne(@Param('id') id: string) {
     return this.partiesService.findOne(id);
   }
@@ -75,6 +92,9 @@ export class PartiesController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
+  @ApiOkResponse({
+    type: PartyPartialResponse,
+  })
   update(
     @Param('id') id: string,
     @GetCurrentUserById() userId: string,
@@ -86,6 +106,9 @@ export class PartiesController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
+  @ApiOkResponse({
+    type: GenericPartyResponse,
+  })
   remove(@Param('id') id: string, @GetCurrentUserById() userId: string) {
     return this.partiesService.remove(id, userId);
   }
